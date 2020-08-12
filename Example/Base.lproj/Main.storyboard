@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="2cY-oj-Nv5">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="ufC-wZ-h7g">
+            <objects>
+                <viewController id="vXZ-lx-hvc" customClass="ViewController" customModule="Example" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="jyV-Pf-zRb"/>
+                        <viewControllerLayoutGuide type="bottom" id="2fi-mo-0CV"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="kh9-bI-dsS">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="34" y="31"/>
+        </scene>
+        <!--Example View Controller-->
+        <scene sceneID="KF4-BM-ywj">
+            <objects>
+                <viewController id="2cY-oj-Nv5" customClass="ExampleViewController" customModule="Example" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="LiB-nB-m5b"/>
+                        <viewControllerLayoutGuide type="bottom" id="Otm-m6-FyU"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="4id-9T-A51">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Vw4-zm-g6v" customClass="FlexibleSteppedProgressBar" customModule="FlexibleSteppedProgressBar">
+                                <rect key="frame" x="24" y="100" width="327" height="80"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="80" id="ffE-c1-JZX"/>
+                                </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="numberOfPoints">
+                                        <integer key="value" value="4"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="radius">
+                                        <real key="value" value="20"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="progressRadius">
+                                        <real key="value" value="20"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="progressLineHeight">
+                                        <real key="value" value="3"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                            </view>
+                            <stepper opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" maximumValue="3" translatesAutoresizingMaskIntoConstraints="NO" id="S3N-vm-eGP">
+                                <rect key="frame" x="96" y="300" width="94" height="32"/>
+                                <connections>
+                                    <action selector="onChangeStepper:" destination="2cY-oj-Nv5" eventType="valueChanged" id="4lp-SF-4MD"/>
+                                </connections>
+                            </stepper>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="NJ3-H7-V8n">
+                                <rect key="frame" x="270" y="300" width="51" height="31"/>
+                                <connections>
+                                    <action selector="onChangeSwitch:" destination="2cY-oj-Nv5" eventType="valueChanged" id="30O-7R-WOv"/>
+                                </connections>
+                            </switch>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstItem="S3N-vm-eGP" firstAttribute="top" secondItem="Vw4-zm-g6v" secondAttribute="bottom" constant="120" id="32l-A4-o1H"/>
+                            <constraint firstItem="Vw4-zm-g6v" firstAttribute="leading" secondItem="4id-9T-A51" secondAttribute="leadingMargin" constant="8" id="7Ke-I6-tdB"/>
+                            <constraint firstItem="Vw4-zm-g6v" firstAttribute="top" secondItem="LiB-nB-m5b" secondAttribute="bottom" constant="100" id="CMl-Y8-czG"/>
+                            <constraint firstItem="S3N-vm-eGP" firstAttribute="leading" secondItem="4id-9T-A51" secondAttribute="leadingMargin" constant="80" id="GLZ-2G-Ldg"/>
+                            <constraint firstItem="NJ3-H7-V8n" firstAttribute="top" secondItem="S3N-vm-eGP" secondAttribute="top" id="g5n-Gx-Wld"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="Vw4-zm-g6v" secondAttribute="trailing" constant="8" id="kqD-gX-513"/>
+                            <constraint firstItem="NJ3-H7-V8n" firstAttribute="leading" secondItem="S3N-vm-eGP" secondAttribute="trailing" constant="80" id="lZE-yC-iny"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="progressBarWithoutLastState" destination="Vw4-zm-g6v" id="zIa-Ex-L3e"/>
+                        <outlet property="stateSwitch" destination="NJ3-H7-V8n" id="Pks-uc-dyY"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iKp-be-oGt" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1036" y="31"/>
+        </scene>
+    </scenes>
+</document>

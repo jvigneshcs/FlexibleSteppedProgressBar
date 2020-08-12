@@ -24,6 +24,9 @@ import CoreGraphics
     @objc optional func progressBar(_ progressBar: FlexibleSteppedProgressBar,
                               textAtIndex index: Int, position: FlexibleSteppedProgressBarTextLocation) -> String
     
+    @objc optional func progressBar(_ progressBar: FlexibleSteppedProgressBar,
+                                    stateAtIndex index: Int) -> FSPBState
+    
 }
 
 @IBDesignable open class FlexibleSteppedProgressBar: UIView {
@@ -59,7 +62,8 @@ import CoreGraphics
         }
     }
     
-    @objc open var currentSelectedCenterColor: UIColor = UIColor.black
+    @objc open var currentSelectedCenterStartedColor: UIColor = UIColor.black
+    @objc open var currentSelectedCenterCompleteColor: UIColor = UIColor.black
     @objc open var currentSelectedTextColor: UIColor!
     @objc open var viewBackgroundColor: UIColor = UIColor.white
     @objc open var selectedOuterCircleStrokeColor: UIColor!
@@ -132,7 +136,7 @@ import CoreGraphics
     /// The progress points's raduis
     @IBInspectable open var progressRadius: CGFloat = 0.0 {
         didSet {
-            maskLayer.cornerRadius = progressRadius
+            lowerMaskLayer.cornerRadius = progressRadius
             self.setNeedsDisplay()
         }
     }
@@ -216,7 +220,9 @@ import CoreGraphics
     
     fileprivate var backgroundLayer = CAShapeLayer()
     
-    fileprivate var progressLayer = CAShapeLayer()
+    fileprivate var lowerProgressLayer = CAShapeLayer()
+    
+    fileprivate var upperProgressLayer = CAShapeLayer()
     
     fileprivate var selectionLayer = CAShapeLayer()
     
@@ -234,7 +240,9 @@ import CoreGraphics
     
     fileprivate var clearCentersLayer = CAShapeLayer()
     
-    fileprivate var maskLayer = CAShapeLayer()
+    fileprivate var lowerMaskLayer = CAShapeLayer()
+    
+    fileprivate var upperMaskLayer = CAShapeLayer()
     
     fileprivate var centerPoints = [CGPoint]()
     
@@ -306,13 +314,15 @@ import CoreGraphics
         self.layer.addSublayer(self.clearCentersLayer)
 
         self.layer.addSublayer(self.backgroundLayer)
-        self.layer.addSublayer(self.progressLayer)
+        self.layer.addSublayer(self.lowerProgressLayer)
+        self.layer.addSublayer(self.upperProgressLayer)
         self.layer.addSublayer(self.clearSelectionLayer)
         self.layer.addSublayer(self.selectionCenterLayer)
         self.layer.addSublayer(self.selectionLayer)
 
         self.layer.addSublayer(self.roadToSelectionLayer)
-        self.progressLayer.mask = self.maskLayer
+        self.upperProgressLayer.mask = self.upperMaskLayer
+        self.lowerProgressLayer.mask = self.lowerMaskLayer
         
         self.contentMode = UIView.ContentMode.redraw
     }
@@ -337,6 +347,8 @@ import CoreGraphics
             xCursor += 2 * largerRadius + distanceBetweenCircles
         }
         
+        let currentIndexState = self.delegate?.progressBar?(self,
+                                                            stateAtIndex: self.currentIndex)
         let largerLineWidth = fmax(selectedOuterCircleLineWidth, lastStateOuterCircleLineWidth)
         
         if(!animationRendering) {
@@ -349,9 +361,13 @@ import CoreGraphics
             backgroundLayer.path = bgPath.cgPath
             backgroundLayer.fillColor = backgroundShapeColor.cgColor
             
-            let progressPath = self._shapePath(self.centerPoints, aRadius: _progressRadius, aLineHeight: _progressLineHeight)
-            progressLayer.path = progressPath.cgPath
-            progressLayer.fillColor = selectedBackgoundColor.cgColor
+            let upperProgressPath = self._shapePath(self.centerPoints, aRadius: _progressRadius, aLineHeight: _progressLineHeight)
+            upperProgressLayer.path = upperProgressPath.cgPath
+            upperProgressLayer.fillColor = currentSelectedCenterCompleteColor.cgColor
+            
+            let lowerProgressPath = self._shapePath(self.centerPoints, aRadius: _progressRadius, aLineHeight: _progressLineHeight)
+            lowerProgressLayer.path = lowerProgressPath.cgPath
+            lowerProgressLayer.fillColor = selectedBackgoundColor.cgColor
             
             let clearSelectedRadius = fmax(_progressRadius, _progressRadius + selectedOuterCircleLineWidth)
             let clearSelectedPath = self._shapePathForSelected(self.centerPoints[currentIndex], aRadius: clearSelectedRadius)
@@ -359,8 +375,9 @@ import CoreGraphics
             clearSelectionLayer.fillColor = viewBackgroundColor.cgColor
             
             let selectedPath = self._shapePathForSelected(self.centerPoints[currentIndex], aRadius: _radius)
+            let selectionFillColor = (currentIndexState == .complete) ? currentSelectedCenterCompleteColor : currentSelectedCenterStartedColor
             selectionLayer.path = selectedPath.cgPath
-            selectionLayer.fillColor = currentSelectedCenterColor.cgColor
+            selectionLayer.fillColor = selectionFillColor.cgColor
 
             if !useLastState {
                 let selectedPathCenter = self._shapePathForSelectedPathCenter(self.centerPoints[currentIndex], aRadius: _progressRadius)
@@ -407,20 +424,42 @@ import CoreGraphics
         self.renderBottomTextIndexes()
         self.renderTextIndexes()
         
-        let progressCenterPoints = Array<CGPoint>(centerPoints[0..<(completedTillIndex+1)])
+        let progressCenterPoints = Array<CGPoint>(centerPoints[0...completedTillIndex])
         
         if let currentProgressCenterPoint = progressCenterPoints.last {
             
-            let maskPath = self._maskPath(currentProgressCenterPoint)
-            maskLayer.path = maskPath.cgPath
+            let lowerMaskPath = self._maskPath(currentProgressCenterPoint)
+            lowerMaskLayer.path = lowerMaskPath.cgPath
+            
+            let centerPointsCount = progressCenterPoints.count
+            let previousProgressCenterPoint: CGPoint
+            if currentIndexState == .complete {
+                previousProgressCenterPoint = currentProgressCenterPoint
+            } else if completedTillIndex > 0,
+                centerPointsCount > 1 {
+                previousProgressCenterPoint = progressCenterPoints[centerPointsCount - 2]
+            } else {
+                previousProgressCenterPoint = CGPoint(x: 0,
+                                                      y: progressCenterPoints[0].y)
+            }
+            let upperMaskPath = self._maskPath(previousProgressCenterPoint)
+            upperMaskLayer.path = upperMaskPath.cgPath
+            let animationDuration = stepAnimationDuration * CFTimeInterval(abs(completedTillIndex - previousIndex))
+            let timingfunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+            
+            let upperProgressAnimation = CABasicAnimation(keyPath: "path")
+            upperProgressAnimation.duration = animationDuration
+            upperProgressAnimation.toValue = upperMaskPath
+            upperProgressAnimation.isRemovedOnCompletion = false
+            upperProgressAnimation.timingFunction = timingfunction
+            
+            let lowerProgressAnimation = CABasicAnimation(keyPath: "path")
+            lowerProgressAnimation.duration = animationDuration
+            lowerProgressAnimation.toValue = lowerMaskPath
+            lowerProgressAnimation.isRemovedOnCompletion = false
+            lowerProgressAnimation.timingFunction = timingfunction
             
             CATransaction.begin()
-            let progressAnimation = CABasicAnimation(keyPath: "path")
-            progressAnimation.duration = stepAnimationDuration * CFTimeInterval(abs(completedTillIndex - previousIndex))
-            progressAnimation.toValue = maskPath
-            progressAnimation.isRemovedOnCompletion = false
-            progressAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-            
             
             CATransaction.setCompletionBlock { () -> Void in
                 if(self.animationRendering) {
@@ -431,7 +470,9 @@ import CoreGraphics
                 }
             }
             
-            maskLayer.add(progressAnimation, forKey: "progressAnimation")
+            lowerMaskLayer.add(lowerProgressAnimation, forKey: "lowerProgressAnimation")
+            upperMaskLayer.add(upperProgressAnimation, forKey: "upperProgressAnimation")
+            
             CATransaction.commit()
         }
         self.previousIndex = self.currentIndex
